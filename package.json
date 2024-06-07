@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "dev": "concurrently \"npm run watch --prefix client\" \"npm run dev --prefix server\"",
     "build": "concurrently \"npm run build --prefix client\" \"npm run build --prefix server\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "typescript": "^5.4.5"
   }
 }

@@ -1,0 +1,28 @@
+{
+    "global": {
+        "PlayerJoin": "global.playerjoin",
+        "RequestUsername": "global.requestusername",
+        "Reconnected": "global.reconnected",
+        "Disconnected": "global.disconnected"
+    },
+    "lobby": {
+        "NewGame": "lobby.newgame",
+        "GameAdded": "lobby.gameadded",
+        "GameUpdated": "lobby.gameupdated",
+        "GameRemoved": "lobby.gameremoved",
+        "PlayerJoinGame": "lobby.playerjoingame",
+        "PlayerUpdate": "lobby.playerupdate",
+        "PlayerLeaveGame": "lobby.playerleavegame"
+    },
+    "game": {
+        "PlayerJoin": "game.playerjoin",
+        "PlayerUpdate": "game.playerupdate",
+        "PlayerLeave": "game.playerleave",
+        "ReadyCheck": "game.readycheck",
+        "GameStart": "game.gamestart",
+        "PlaceTile": "game.placetile",
+        "GainPoints": "game.gainpoints",
+        "NextTurn": "game.nextturn",
+        "DrawTile": "game.drawtile"
+    }
+}

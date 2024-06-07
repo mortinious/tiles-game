@@ -1,0 +1,1 @@
+export type TileType = "green" | "yellow" | "blue" | "white";
