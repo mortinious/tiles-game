@@ -1,10 +1,8 @@
 import { Container, Text, Graphics } from "pixi.js";
 import { Tile } from "./tile";
-import { getRandomTileType } from "../../../server/src/utils";
 import colors from "../../../common/colors.json";
 import { Game } from "./game";
-import { Board } from "./board";
-import { TileData } from "common/tileData";
+import { TileData } from "../../../common/tileData";
 
 export class HandArea extends Container {
     tileSize: number;

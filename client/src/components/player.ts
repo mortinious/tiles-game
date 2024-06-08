@@ -1,8 +1,8 @@
 import { BitmapText, Container, Text } from "pixi.js";
 import colors from "../../../common/colors.json";
-import { PlayerData } from "common/playerData";
+import { PlayerData } from "../../../common/playerData";
 import { MediumTextStyle, SmallTextStyle } from "../util/textstyles";
-import { GameData } from "common/gameData";
+import { GameData } from "../../../common/gameData";
 
 export class Player extends Container{
     data: PlayerData;

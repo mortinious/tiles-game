@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "build:types": "tsc -p ./common/tsconfig.json",
     "watch:client": "npm run watch --prefix client",
     "dev:server": "npm run dev --prefix server",
     "dev": "concurrently \"npm run watch --prefix client\" \"npm run dev --prefix server\"",
-    "build": "concurrently \"npm run build --prefix client\" \"npm run build --prefix server\"",
+    "build": "npm run build:types && concurrently \"npm run build --prefix client\" \"npm run build --prefix server\"",
+    "start": "node dist/server/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -14,5 +16,9 @@
   "devDependencies": {
     "concurrently": "^8.2.2",
     "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
   }
 }

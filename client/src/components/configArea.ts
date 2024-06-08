@@ -1,8 +1,7 @@
-import { GameData } from "common/gameData";
 import { BitmapText, Container, FederatedPointerEvent, Graphics, Rectangle, Text } from "pixi.js";
 import { LargeTextStyle, MediumTextStyle, SmallTextStyle } from "../util/textstyles";
 import colors from "../../../common/colors.json";
-import { GameConfig } from "common/gameConfig";
+import { GameConfig } from "../../../common/gameConfig";
 
 export class ConfigArea extends Container {
     config: GameConfig;

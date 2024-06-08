@@ -1,11 +1,11 @@
-import { GameData } from "common/gameData";
+import { GameData } from "../../../common/gameData";
 import { BitmapText, Container, Graphics, Rectangle, Text } from "pixi.js";
 import { LargeTextStyle, MediumTextStyle, SmallTextStyle } from "../util/textstyles";
 import { app } from "..";
 import colors from "../../../common/colors.json";
 import { Socket } from "socket.io-client";
 import events from "../../../common/events.json";
-import { PlayerData } from "common/playerData";
+import { PlayerData } from "../../../common/playerData";
 
 
 export class Lobby extends Container {

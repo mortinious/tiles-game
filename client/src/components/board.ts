@@ -2,9 +2,9 @@ import { Container, Graphics, Text, Point } from "pixi.js";
 import { Tile } from "./tile";
 import colors from "../../../common/colors.json";
 import { Game } from "./game";
-import { TileType } from "common/tileType";
+import { TileType } from "../../../common/tileType";
 import { MediumTextStyle } from "../util/textstyles";
-import { BonusData } from "common/bonusData";
+import { BonusData } from "../../../common/bonusData";
 import { ScoreNotice } from "./scoreNotice";
 
 export class Board extends Container{

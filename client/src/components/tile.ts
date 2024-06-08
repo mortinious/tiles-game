@@ -1,9 +1,8 @@
-import { getRandomTileType } from "../../../server/src/utils";
 import { Container, Graphics} from "pixi.js";
 import { TileType } from "../../../common/tileType";
 import colors from "../../../common/colors.json";
 import { Tooltip } from "./tooltip";
-import { TileData, TileScoring } from "common/tileData";
+import { TileData, TileScoring } from "../../../common/tileData";
 import { Game } from "./game";
 
 export class Tile extends Container{

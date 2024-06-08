@@ -1,11 +1,11 @@
 import { Server } from "socket.io";
-import { GameData } from "common/gameData";
-import { PlayerData } from "common/playerData";
-import { TileType } from "common/tileType";
-import { GameState } from "common/gameState";
+import { GameData } from "../../common/gameData";
+import { PlayerData } from "../../common/playerData";
+import { TileType } from "../../common/tileType";
+import { GameState } from "../../common/gameState";
 import { getRandomTileType, shuffleArray } from "./utils";
-import { GameConfig } from "common/gameConfig";
-import { BonusData } from "common/bonusData";
+import { GameConfig } from "../../common/gameConfig";
+import { BonusData } from "../../common/bonusData";
 
 export class Game {
     id: string;

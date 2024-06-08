@@ -1,2 +1,4 @@
 node_modules
 dist
+common/*.js
+common/*.d.ts

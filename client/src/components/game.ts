@@ -4,17 +4,17 @@ import { HandArea } from "./handarea";
 import { Tooltip } from "./tooltip";
 import { PlayerArea } from "./playerarea";
 import { app } from "../index";
-import { GameData } from "common/gameData";
+import { GameData } from "../../../common/gameData";
 import { Socket } from "socket.io-client";
 import events from "../../../common/events.json"
 import colors from "../../../common/colors.json"
 import { GameState } from "../../../common/gameState";
 import { LargeTextStyle, SmallTextStyle } from "../util/textstyles";
-import { PlayerData } from "common/playerData";
+import { PlayerData } from "../../../common/playerData";
 import { Tile } from "./tile";
 import { Notice } from "./notice";
 import { getPossessiveName } from "../util/utils";
-import { GameConfig } from "common/gameConfig";
+import { GameConfig } from "../../../common/gameConfig";
 import { ReadyCheckPopup } from "./readyCheckPopup";
 import { ConfigArea } from "./configArea";
 

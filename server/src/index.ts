@@ -4,13 +4,8 @@ import {Socket, Server} from "socket.io";
 import Events from "../../common/events.json";
 import path from "path";
 import { Game } from "./game";
-import { PlayerData } from "common/playerData";
-import { Player } from "client/src/components/player";
-import { GameConfig } from "common/gameConfig";
-
-interface SocketData {
-    player: Player
-}
+import { PlayerData } from "../../common/playerData";
+import { GameConfig } from "../../common/gameConfig";
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -66,13 +61,13 @@ io.on("connection", (socket: Socket) => {
         }
     });
 
-    socket.on(Events.global.RequestUsername, (data: any, callback) => {
+    socket.on(Events.global.RequestUsername, (data: any, callback: (response: any) => void): void => {
         player.name = data.name;
         socket.join("lobby");
         callback({success: true, games: games.map(g => g.getGameData())});
     })
 
-    socket.on(Events.game.PlayerJoin, (data: any, callback) => {
+    socket.on(Events.game.PlayerJoin, (data: any, callback: (response: any) => void): void => {
         const game = games.find(x => x.id === data.gameId);
         if (!game || game.state.stage !== "readycheck") {
             callback({success: false});
@@ -86,7 +81,7 @@ io.on("connection", (socket: Socket) => {
         callback({success: true, game: game.getGameData()})
     });
 
-    socket.on(Events.game.PlayerLeave, (data: any, callback) => {
+    socket.on(Events.game.PlayerLeave, (data: any, callback: (response: any) => void): void => {
         if (!player) {
             callback({success: true, games: games.map(x => x.getGameData())})
             return;
@@ -110,7 +105,7 @@ io.on("connection", (socket: Socket) => {
         io.to("lobby").emit(Events.lobby.GameAdded, {game: game.getGameData()});
     });
 
-    socket.on(Events.game.ReadyCheck, (data) => {
+    socket.on(Events.game.ReadyCheck, (data: any): void => {
         const game = games.find(x => x.id === player.gameId);
         if (!game) return;
         player.ready = data.ready;
@@ -126,7 +121,7 @@ io.on("connection", (socket: Socket) => {
         io.to("lobby").emit(Events.lobby.GameUpdated, {game: game.getGameData()})
     })
 
-    socket.on(Events.game.PlaceTile, (data, callback) => {
+    socket.on(Events.game.PlaceTile, (data: any, callback: (response: any) => void): void => {
         const game = games.find(x => x.id === player.gameId);
         if (!game) return;
         const response = game.placeTile(player, data.index, data.x, data.y);
@@ -170,6 +165,6 @@ app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "../../dist/client/index.html"));
 })
 
-httpServer.listen(8080, () => {
+httpServer.listen(process.env["TILES_GAME_PORT"] || 8080, () => {
     console.log(`Server started on port 8080`)
 })

@@ -1,4 +1,4 @@
-import { GameData } from "common/gameData";
+import { GameData } from "../../../common/gameData";
 import { BitmapText, Container, Graphics, Text } from "pixi.js";
 import { LargeTextStyle, SmallTextStyle } from "../util/textstyles";
 import colors from "../../../common/colors.json";
