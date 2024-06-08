@@ -164,7 +164,7 @@ app.use(express.static(path.join(__dirname, "../../dist/client")))
 app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "../../dist/client/index.html"));
 })
-
-httpServer.listen(process.env["TILES_GAME_PORT"] || 8080, () => {
-    console.log(`Server started on port 8080`)
+const port = process.env["TILES_GAME_PORT"] || 8080;
+httpServer.listen(port, () => {
+    console.log(`Server started on port ${port}`)
 })
