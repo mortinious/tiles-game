@@ -1,5 +1,5 @@
 import { GameData } from "../../../common/gameData";
-import { BitmapText, Container, Graphics, Rectangle, Text } from "pixi.js";
+import { Assets, BitmapText, Container, Graphics, Rectangle, Sprite, SpriteOptions, Text } from "pixi.js";
 import { LargeTextStyle, MediumTextStyle, SmallTextStyle } from "../util/textstyles";
 import { app } from "..";
 import colors from "../../../common/colors.json";
@@ -32,11 +32,9 @@ export class Lobby extends Container {
         const createGame = () => {
             socket.emit(events.lobby.NewGame);
         }
-
-        const text = new Text({text: "Lobby", style: LargeTextStyle});
-        text.position = {x: app.screen.width / 2, y : 100};
-        text.anchor = 0.5;
-        this.addChild(text);
+        const logo = this.createLogo();
+        logo.position = {x: app.screen.width / 2 - logo.width / 2, y : 80}
+        this.addChild(logo);
 
         const createButton = new Container();
         const buttonBack = new Graphics().roundRect(0, 0, 100, 40, 5).fill(colors.tilegreen).stroke({color: "black", width: 4, alignment: 1, alpha: 0.3});
@@ -49,7 +47,7 @@ export class Lobby extends Container {
         buttonText.anchor = 0.5;
         createButton.addChild(buttonBack);
         createButton.addChild(buttonText);
-        createButton.position = {x: app.screen.width / 2 - 50, y : 130};
+        createButton.position = {x: app.screen.width / 2 - 50, y : 260};
         this.addChild(createButton);
 
         this.gamesContainer = new Container();
@@ -58,7 +56,7 @@ export class Lobby extends Container {
         this.games.forEach(g => this.addGame(g, joinGame));
         this.updateGameOrder();
 
-        this.gamesContainer.y = 300;
+        this.gamesContainer.y = 350;
         this.gamesContainer.eventMode = "static";
         this.gamesContainer.hitArea = new Rectangle(0,0,app.screen.width, 400);
         this.gamesContainer.on("wheel", (e) => {
@@ -211,5 +209,31 @@ export class Lobby extends Container {
         return gameContainer;
     }
 
+    createLogo = () => {
+        const ascii = 
+`
+#####  #  #     ####  #####
+  #    #  #     #     #
+  #    #  #     ###   #####
+  #    #  #     #         #
+  #    #  ####  ####  #####
+`
+        const size = 25;
+        const colorArray = [colors.tileblue, colors.tilegreen, colors.tilewhite, colors.tileyellow];
+        const logoContainer = new Container();
+        const rows = ascii.split("\n");
+        let width = 0
+        for (let row = 0; row < rows.length; row++) {
+            const textrow = rows[row];
+            width = Math.max(width, textrow.length);
+            if (textrow.trim() === "") continue;
+            for (let col = 0; col < textrow.length; col++) {
+                if (textrow[col] === " ") continue;
+                logoContainer.addChild(new Graphics().rect(col * size, row * size, size, size).fill(colorArray[Math.floor(Math.random() * 4)]).stroke({color: "black", width: 3, alpha: 0.3, alignment: 1}))
+            }
+        }
+        logoContainer.width = width * size;
+        return logoContainer;
+    }
 
 }

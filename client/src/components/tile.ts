@@ -23,11 +23,8 @@ export class Tile extends Container{
         const onHover = (tile: Tile) => (this.game.tooltip as Tooltip).setText(tile.getTooltipText());
         const onHoverEnd = () => (this.game.tooltip as Tooltip).setText();
 
-        const background = new Graphics().rect(0, 0, tileSize, tileSize).fill(data.color);
+        const background = new Graphics().rect(0, 0, tileSize, tileSize).fill(data.color).stroke({color: "black", width: 3, alpha: 0.3, alignment: 1});
         this.addChild(background);
-
-        const border = new Graphics().rect(0, 0, tileSize, tileSize).stroke({color: "black", width: 3, alpha: 0.3, alignment: 1});
-        this.addChild(border);
         this.scoring = [];
         if (!!tiledata.scoring && tiledata.scoring.length === 4) {
             this.scoring = tiledata.scoring;

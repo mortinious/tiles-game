@@ -17,7 +17,7 @@ export class Tooltip extends Container{
 
     setText = (text?: string) => {
         if (!text) {
-            this.text.text = "Håll muspekaren över en bricka för att få information om den.";
+            this.text.text = "Håll muspekaren över en bricka för att få information om den.\n\nPå din tur väljer du en bricka från de 5 du blivit tilldelad och drar den ut på brädet.\nDu får poäng baserat på vilka brickor som angränsar brickan när du lägger ut den.\nPilarna på brickan säger vilka angrändande färger som get poäng.\n\nPå brädet finns några rutor som ger extra poäng (+1/+2).";
             return;
         }
         this.text.text = text;

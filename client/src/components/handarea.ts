@@ -3,6 +3,7 @@ import { Tile } from "./tile";
 import colors from "../../../common/colors.json";
 import { Game } from "./game";
 import { TileData } from "../../../common/tileData";
+import { Tooltip } from "./tooltip";
 
 export class HandArea extends Container {
     tileSize: number;
@@ -89,6 +90,7 @@ export class HandArea extends Container {
                         board.addTile(tile, response.x, response.y, response.score);
                         e.target.off("pointerdown");
                         tile.onPlaced();
+                        (this.game.tooltip as Tooltip).setText();
                     }
                     shadow.destroy();
                     this._refreshHand();

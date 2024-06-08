@@ -246,7 +246,7 @@ export class Game extends Container {
             }
             const text = data.state.finalRound ? 
                 `Sista rundan: ${getPossessiveName(playerTurn.name, isItYourTurn)} tur` : 
-                `Runda ${data.state.round}: ${getPossessiveName(playerTurn.name, isItYourTurn)} tur`
+                `Runda ${data.state.round} av ${this.data.config.rounds}: ${getPossessiveName(playerTurn.name, isItYourTurn)} tur`
             this.addChild(new Notice(text, 2000))
             this.setTitleText(text)
         })
