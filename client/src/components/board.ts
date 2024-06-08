@@ -1,10 +1,9 @@
 import { Container, Graphics, Text, Point } from "pixi.js";
 import { Tile } from "./tile";
 import colors from "../../../common/colors.json";
-import { TileData } from "common/tileData";
 import { Game } from "./game";
 import { TileType } from "common/tileType";
-import { LargeTextStyle, MediumTextStyle } from "../util/textstyles";
+import { MediumTextStyle } from "../util/textstyles";
 import { BonusData } from "common/bonusData";
 import { ScoreNotice } from "./scoreNotice";
 
@@ -14,7 +13,6 @@ export class Board extends Container{
     boardHeight: number;
     tileSize: number;
     game: Game;
-
     constructor (width: number, height: number, tileSize: number, tiles: TileType[][], game: Game) {
         super();
         this.game = game;
@@ -22,21 +20,26 @@ export class Board extends Container{
         this.tileSize = tileSize;
         this.boardWidth = width;
         this.boardHeight = height;
-        const border = new Graphics().rect(0, 0, width * tileSize, height * tileSize).stroke({alignment: 0, color: colors.areaborder, width: 10, join: "round"})
+        this.children.forEach(x => x.destroy());
+        
+        const border = new Graphics().rect(0, 0, width * this.tileSize, height * this.tileSize).stroke({alignment: 0, color: colors.areaborder, width: 10, join: "round"})
         this.addChild(border);
         for (let w = 0; w < width; w++) {
             const col = [] as (Tile | null)[];
             this.tiles.push(col);
             for (let h = 0; h < height; h++) {
                 col.push(null);
-                const square = new Graphics().rect(w * tileSize, h * tileSize, tileSize, tileSize).fill(((w + h) % 2) ? colors.boardsquare1 : colors.boardsquare2);
-                this.addChild(square);                
-                if (tiles[w][h]) {
-                    this.addTile(new Tile({type: tiles[w][h], scoring: []}, this.tileSize, this.game), w, h);
+                const square = new Graphics().rect(w * this.tileSize, h * this.tileSize, this.tileSize, this.tileSize).fill(((w + h) % 2) ? colors.boardsquare1 : colors.boardsquare2);
+                this.addChild(square);
+                const tileType = tiles[w][h];        
+                if (tileType) {
+                    const tile = new Tile({type: tileType, scoring: []}, this.tileSize, this.game);
+                    this.addTile(tile, w, h);
+                    this.tiles[w][h] = tile;
                 }
             }
         }
-        this.addBonusTiles(game.data.bonusTiles);
+        this.addBonusTiles(this.game.data.bonusTiles);
     }
 
     addTile = (tile: Tile, gridX: number, gridY: number, score?: number) => {

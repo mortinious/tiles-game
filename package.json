@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "watch:client": "npm run watch --prefix client",
+    "dev:server": "npm run dev --prefix server",
     "dev": "concurrently \"npm run watch --prefix client\" \"npm run dev --prefix server\"",
     "build": "concurrently \"npm run build --prefix client\" \"npm run build --prefix server\"",
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -21,8 +21,8 @@ export class Tile extends Container{
         this.zIndex = 20;
         const data = this.getTypeData();
 
-        const onHover = (tile: Tile) => this.game.tooltip.setText(tile.getTooltipText());
-        const onHoverEnd = () => this.game.tooltip.setText();
+        const onHover = (tile: Tile) => (this.game.tooltip as Tooltip).setText(tile.getTooltipText());
+        const onHoverEnd = () => (this.game.tooltip as Tooltip).setText();
 
         const background = new Graphics().rect(0, 0, tileSize, tileSize).fill(data.color);
         this.addChild(background);
@@ -44,11 +44,15 @@ export class Tile extends Container{
         this.eventMode = "static";
         
         this.on("mouseenter", e => {
-            onHover(this);
+            if (!!onHover) {
+                onHover(this);
+            }
         });
 
         this.on("mouseleave", e => {
-            onHoverEnd()
+            if (!!onHoverEnd) {
+                onHoverEnd()
+            }
         })
     }
 
@@ -62,12 +66,15 @@ export class Tile extends Container{
     }
 
     getTooltipText = () => {
-        let text = `${this.getTypeData().name}\n\nBrickan ger 1 poäng för:`
-        for (const entry of Object.entries(this.scoring)) {
-            const dir = entry[0];
-            const val = entry[1];
-            text += `\n\n${this.getTypeData(val.type).name} ${this._getDirectionName(dir)}`
-        }
+        let text = `${this.getTypeData().name}\n\nBrickan ger poäng för:`
+        text += `\n\n- ${this.getTypeData(this.scoring[0].type).name} ${this._getDirectionName(0)}`;
+        text += `\n\- ${this.getTypeData(this.scoring[1].type).name} ${this._getDirectionName(1)}`;
+        text += `\n\- ${this.getTypeData(this.scoring[2].type).name} ${this._getDirectionName(2)}`;
+        text += `\n\- ${this.getTypeData(this.scoring[3].type).name} ${this._getDirectionName(3)}`;
+        text += "\n\nDu får 1 poäng för 1 matchad färg"
+        text += "\n3 poäng för 2 matchade färger"
+        text += "\n6 poäng för 3 matchade färger"
+        text += "\n10 poäng för 10 matchade färger"
         return text;
     }
 
@@ -96,17 +103,8 @@ export class Tile extends Container{
         }
     }
 
-    _getDirectionName = (dir: string) => {
-        switch (dir) {
-            case "west":
-                return "till vänster."
-            case "north":
-                return "ovanför."
-            case "east":
-                return "till höger."
-            case "south":
-                return "nedanför."
-        }
+    _getDirectionName = (index: number) => {
+        return ["till vänster.", "ovanför.", "till höger.", "nedanför."][index];
     }
 
     onPlaced = () => {

@@ -14,27 +14,32 @@ import { PlayerData } from "common/playerData";
 import { Tile } from "./tile";
 import { Notice } from "./notice";
 import { getPossessiveName } from "../util/utils";
+import { GameConfig } from "common/gameConfig";
+import { ReadyCheckPopup } from "./readyCheckPopup";
+import { ConfigArea } from "./configArea";
 
 export class Game extends Container {
     tileSize = 50;
     data: GameData;
-    board;
-    handArea;
-    tooltip;
-    playerArea;
-    socket;
-    leaveCallback;
-    player;
+    board: Board | null;
+    handArea: HandArea | null;
+    tooltip: Tooltip | null;
+    playerArea: PlayerArea;
+    socket: Socket;
+    leaveCallback: (games: GameData[]) => void;
+    player: PlayerData;
     titleText: BitmapText;
+    setupContainer: Container | null;
 
     constructor (socket: Socket, playerId: string, data: GameData, leaveCallback: (games: GameData[]) => void) {
         super();
         this.socket = socket;
         this.data = data;
         this.tileSize = 50;
-        this.board = new Board(this.data.config.boardWidth, this.data.config.boardHeight, this.tileSize, this.data.tiles, this);
-        this.handArea = new HandArea(this, this.tileSize);
-        this.tooltip = new Tooltip();
+        this.board = null;
+        this.handArea = null;
+        this.tooltip = null;
+        this.setupContainer = null;
         this.playerArea = new PlayerArea();
         this.leaveCallback = leaveCallback;
         this.player = this.data.players.find((x: PlayerData) => x.id === playerId) as PlayerData;
@@ -55,25 +60,6 @@ export class Game extends Container {
 
     getCurrentPlayerTurn = () => {
         return this.data.players[this.data.state.turn];
-    }
-
-    updateReadyCheckButton = (readyCheckPopup: Container) => {
-        const title = (readyCheckPopup.getChildByLabel("title") as Text);
-        const button = readyCheckPopup.getChildByLabel("button");
-        const waiting = this.data.players.some(x => !x.ready);
-        if (!title || !button) return;
-        if (!this.player.ready) {
-            title.text = "Är du redo?";
-            (button.children[0] as Text).text = "Jag är redo!";
-            button.alpha = 1;
-        } else if (!waiting) {
-            title.text = "Alla är redo!";
-            (button.children[0] as Text).text = "Starta spelet";
-            button.alpha = 1;
-        } else {
-            title.text = "Inväntar spelare";
-            (button.children[0] as Text).text = "Avbryt";
-        }
     }
 
     updatePlayer = (player: Partial<PlayerData>) => {
@@ -102,6 +88,31 @@ export class Game extends Container {
         this.titleText.text = text;
     }
 
+    startGame = () => {
+        if (this.setupContainer) {
+            this.setupContainer.destroy();
+        }
+
+        this.board = new Board(this.data.config.boardWidth, this.data.config.boardHeight, this.tileSize, this.data.tiles, this);
+        this.board.position = {x: app.screen.width / 2 - this.board.width / 2, y: 120}
+        this.addChild(this.board);
+
+        this.handArea = new HandArea(this, this.tileSize);
+        this.handArea.position = {x: this.board.x + this.board.width / 2 - this.handArea.areaWidth / 2, y: this.board.y + this.board.height + this.tileSize / 2}
+        const isItYourTurn = this.data.players[this.data.state.turn].id === this.player.id;
+        if (isItYourTurn) {
+            this.handArea.canPlaceTile = true;
+        }
+        this.addChild(this.handArea);
+
+        this.player.tiles?.forEach(this.handArea.addTile);
+
+        this.tooltip = new Tooltip();
+        this.tooltip.x = app.screen.width - 270;
+        this.tooltip.y = 120;
+        this.addChild(this.tooltip);
+    }
+
     init = () => {
 
         const leaveGame = () => {
@@ -121,18 +132,8 @@ export class Game extends Container {
         }
         this.addChild(this.titleText);
 
-        const boardContainer = this.board;
-        boardContainer.x = app.screen.width / 2 - boardContainer.width / 2;
-        boardContainer.y = 120;
-        this.addChild(boardContainer);
-
-        const handAreaContainer = this.handArea;
-        handAreaContainer.x = boardContainer.x + boardContainer.width / 2 - handAreaContainer.areaWidth / 2;
-        handAreaContainer.y = boardContainer.y + boardContainer.height + this.tileSize / 2;
-        this.addChild(handAreaContainer);
-
         if (this.data.state.stage !== "readycheck") {
-            this.player.tiles?.forEach(this.handArea.addTile);
+            this.startGame();
         }
 
         const leaveButton = new Container();
@@ -149,37 +150,17 @@ export class Game extends Container {
         leaveButton.position = {x: 10, y : 10};
         this.addChild(leaveButton);
 
-        this.tooltip.x = app.screen.width - 270;
-        this.tooltip.y = 120;
-        this.addChild(this.tooltip);
-
         this.playerArea.x = 20;
         this.playerArea.y = 120;
         this.addChild(this.playerArea);
 
-        let readyCheckPopup: Container;
+        let readyCheckPopup: ReadyCheckPopup;
+        let configArea: ConfigArea;
         if (this.data.state.stage === "readycheck") {
-            readyCheckPopup = new Container();
-            readyCheckPopup.addChild(new Graphics().roundRect(0, 0, 300, 120, 10).fill(colors.tilewhite).stroke({color: colors.areaborder, width: 5}))
-            const title = new Text({text: "Är du redo?", style: LargeTextStyle});
-            title.anchor = 0.5;
-            title.position = {x: 150, y: 40};
-            title.label = "title";
-            readyCheckPopup.addChild(title);
-            readyCheckPopup.position = {x: app.screen.width / 2 - 150, y: 200};
-
-            const button = new Graphics().roundRect(90, 70, 120, 40, 5).fill(colors.tileyellow).stroke({color: colors.areaborder, width: 5});
-            button.eventMode = "static";
-            button.label = "button";
-            const buttonText = new Text({text: "Jag är redo!", style: SmallTextStyle});
-            buttonText.anchor = 0.5;
-            buttonText.position = {x: 150, y: 90};
-            button.addChild(buttonText);
-            button.eventMode = "static";
-
-            button.on("pointerdown", () => {
-                const waiting = this.data.players.some(x => !x.ready);
-                if (!this.player.ready) {
+            this.setupContainer = new Container();
+            this.addChild(this.setupContainer);
+            readyCheckPopup = new ReadyCheckPopup(this.data, this.player.id, (ready: boolean, waiting: boolean) => {
+                if (ready) {
                     this.socket.emit(events.game.ReadyCheck, {ready: true});
                 } else {
                     if (!waiting) {
@@ -188,19 +169,22 @@ export class Game extends Container {
                         this.socket.emit(events.game.ReadyCheck, {ready: false});
                     }
                 }
+            })
+            readyCheckPopup.position = {x: app.screen.width / 2 - 150, y: 150};
+            this.setupContainer.addChild(readyCheckPopup);
+
+            configArea = new ConfigArea(this.data.config, (config: Partial<GameConfig>) => {
+                this.socket.emit(events.game.UpdateConfig, {config: config});
             });
-
-            readyCheckPopup.addChild(button);
-
-            this.addChild(readyCheckPopup);
-
-            this.updateReadyCheckButton(readyCheckPopup);
+            configArea.position = {x: app.screen.width / 2 - 150, y: 300}
+            this.setupContainer.addChild(configArea);
         }
 
         this.socket.on(events.game.PlayerJoin, data => {
             this.data.players.push(data.player);
             this.playerArea.addPlayer(data.player, this.data);
-            this.updateReadyCheckButton(readyCheckPopup);
+            const waiting = this.data.players.filter(x => !x.ready).length;
+            readyCheckPopup.updateReadyCheckButton(waiting);
         })
 
         this.socket.on(events.game.PlayerUpdate, data => {
@@ -209,33 +193,43 @@ export class Game extends Container {
 
         this.socket.on(events.game.ReadyCheck, data => {
             this.updatePlayer(data.player);
-            this.updateReadyCheckButton(readyCheckPopup);
+            const waiting = this.data.players.filter(x => !x.ready).length;
+            readyCheckPopup.updateReadyCheckButton(waiting);
         })
 
         this.socket.on(events.game.GameStart, (data: {game: GameData}) => {
             Object.assign(this.data, data.game);
             readyCheckPopup.destroy();
+            this.startGame();
+            if (!this.handArea || !this.board) return;
             this.playerArea.rerender();
             const player = this.data.players.find((x: PlayerData) => x.id === this.player.id) as PlayerData
             Object.assign(this.player, player);
             player.tiles?.forEach(this.handArea.addTile);
-            this.addChild(new Notice(`Spelet har startat!\nRunda ${this.data.state.round}: ${getPossessiveName(this.data.players[0].name)} tur.`, 2000))
-            this.setTitleText(`Runda ${this.data.state.round}: ${getPossessiveName(this.data.players[0].name)} tur.`)
+            const isItYourTurn = this.data.players[this.data.state.turn].id === this.player.id;
+            if (isItYourTurn && this.handArea) {
+                this.handArea.canPlaceTile = true;
+            }
+            this.addChild(new Notice(`Spelet har startat!\nRunda ${this.data.state.round}: ${getPossessiveName(this.data.players[0].name, isItYourTurn)} tur.`, 2000))
+            this.setTitleText(`Runda ${this.data.state.round}: ${getPossessiveName(this.data.players[0].name, isItYourTurn)} tur.`)
             this.board.addBonusTiles(data.game.bonusTiles);
         })
 
         this.socket.on(events.game.PlayerLeave, data => {
             this.data.players.splice(this.data.players.findIndex(x => x.id === data.player.id), 1);
             this.playerArea.removePlayer(data.player);
-            this.updateReadyCheckButton(readyCheckPopup);
+            const waiting = this.data.players.filter(x => !x.ready).length;
+            readyCheckPopup.updateReadyCheckButton(waiting);
         })
 
         this.socket.on(events.game.PlaceTile, data => {
-            this.board.addTile(new Tile({type: data.type}, this.tileSize, this), data.x, data.y);
-            this.playerArea.updatePlayerScore(data.playerId, data.score)
+            if (!this.board) return;
+            this.board.addTile(new Tile({type: data.type}, this.tileSize, this), data.x, data.y, data.score);
+            this.playerArea.updatePlayerScore(data.playerId, data.score);
         });
 
         this.socket.on(events.game.DrawTile, data => {
+            if (!this.handArea) return;
             for (const tileData of data.tiles) {
                 this.handArea.addTile(tileData);
                 this.handArea._refreshHand();
@@ -246,8 +240,30 @@ export class Game extends Container {
             const playerTurn = this.data.players[data.state.turn];
             console.log(`Round ${data.state.round}: ${playerTurn.name}'s turn`);
             Object.assign(this.data.state, data.state);
-            this.addChild(new Notice(`Runda ${data.state.round}: ${getPossessiveName(playerTurn.name)} tur`, 2000))
-            this.setTitleText(`Runda ${data.state.round}: ${getPossessiveName(playerTurn.name)} tur`)
+            const isItYourTurn = this.data.players[this.data.state.turn].id === this.player.id;
+            if (isItYourTurn && this.handArea) {
+                this.handArea.canPlaceTile = true;
+            }
+            const text = data.state.finalRound ? 
+                `Sista rundan: ${getPossessiveName(playerTurn.name, isItYourTurn)} tur` : 
+                `Runda ${data.state.round}: ${getPossessiveName(playerTurn.name, isItYourTurn)} tur`
+            this.addChild(new Notice(text, 2000))
+            this.setTitleText(text)
         })
+
+        this.socket.on(events.game.GameEnd, (data: {winners: PlayerData[]}): void => {
+            this.data.state.stage = "ended";
+            const winnersNames = data.winners.map(x => x.name).join(", ");
+            const text = `${winnersNames} vann spelet!`;
+            this.addChild(new Notice(`Spelet avslutat!\n${text}`, 4000))
+            this.setTitleText(text);
+        })
+
+        this.socket.on(events.game.UpdateConfig, (data: {config: GameConfig}) => {
+            Object.assign(this.data.config, data.config);
+            if (this.setupContainer) {
+                (this.setupContainer.getChildAt(1) as ConfigArea).update();
+            }
+        });
     }
 }

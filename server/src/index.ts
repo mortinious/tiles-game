@@ -6,6 +6,7 @@ import path from "path";
 import { Game } from "./game";
 import { PlayerData } from "common/playerData";
 import { Player } from "client/src/components/player";
+import { GameConfig } from "common/gameConfig";
 
 interface SocketData {
     player: Player
@@ -38,12 +39,12 @@ io.on("connection", (socket: Socket) => {
     } else {
         console.log(`Player ${player.name} reconnected with id: ${player.id}`);
         player.disconnected = false;
-
-        if (!player.gameId) {
+        const game = !player.gameId ? null : games.find(x => x.id === player.gameId);
+        if (!game || game.state.stage === "ended") {
             socket.join("lobby");
             socket.emit(Events.global.Reconnected, {player: player, games: games.map(g => g.getGameData())});
         } else {
-            socket.join(player.gameId);
+            socket.join(game.id);
             player.ready = false;
             const gameData = games.find(x => x.id === player.gameId)?.getGameData();
             socket.emit(Events.global.Reconnected, {player: player, game: gameData});
@@ -104,7 +105,7 @@ io.on("connection", (socket: Socket) => {
     });
 
     socket.on(Events.lobby.NewGame, () => {
-        const game = new Game(`game-${games.length}`, `Spel ${games.length + 1}`, {boardWidth: 10, boardHeight: 10}, io);
+        const game = new Game(`game-${games.length}`, `Spel ${games.length + 1}`, {boardWidth: 10, boardHeight: 10, rounds: 10}, io);
         games.push(game);
         io.to("lobby").emit(Events.lobby.GameAdded, {game: game.getGameData()});
     });
@@ -134,18 +135,34 @@ io.on("connection", (socket: Socket) => {
             const isNewRound = game.nextTurn();
             setTimeout(() => {
                 if (isNewRound) {
-                    io.to(game.id).fetchSockets().then(sockets => {
-                        for (const s of sockets) {
-                            const tiles = game.addTilesToPlayer(s.data.playerId, 1);
-                            s.emit(Events.game.DrawTile, {tiles})
-                        }
-                    })
+                    if (game.state.stage === "ended") {
+                        io.to(game.id).emit(Events.game.GameEnd, {winners: game.state.winners});
+                        io.to("lobby").emit(Events.lobby.GameUpdated, {game: game.getGameData()});
+                        const index = games.findIndex(x => x.id === player.gameId);
+                        games.splice(index, 1);
+                    } else {
+                        io.to(game.id).fetchSockets().then(sockets => {
+                            for (const s of sockets) {
+                                const tiles = game.addTilesToPlayer(s.data.playerId, 1);
+                                s.emit(Events.game.DrawTile, {tiles})
+                            }
+                        })
+                    }
                 }
                 io.to(game.id).emit(Events.game.NextTurn, {state: game.state});
             }, 2000);
         }
         callback(response);
     });
+
+    socket.on(Events.game.UpdateConfig, (data: {config: Partial<GameConfig>}) => {
+        const game = games.find(x => x.id === player.gameId);
+        if (!game || game.state.stage !== "readycheck") return;
+        if (game.updateConfig(data.config)) {
+            console.log(game.config)
+            io.to(game.id).emit(Events.game.UpdateConfig, {config: game.config});
+        }
+    })
 })
 
 app.use(express.static(path.join(__dirname, "../../dist/client")))

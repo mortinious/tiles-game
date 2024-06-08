@@ -1,4 +1,4 @@
-import { Container, Graphics, Text, TextStyle } from "pixi.js";
+import { BitmapText, Container, Graphics, Text, TextStyle } from "pixi.js";
 
 export class Tooltip extends Container{
     text: Text; 
@@ -8,7 +8,7 @@ export class Tooltip extends Container{
         const background = new Graphics().roundRect(0, 0, 250, 400, 10).fill({color: "black", alpha: 0.5});
         this.addChild(background);
 
-        this.text = new Text({style: {fontSize: 20, fill: "white", wordWrap: true, wordWrapWidth: background.width - 40} as TextStyle});
+        this.text = new Text({style: {fontSize: 17, fill: "white", wordWrap: true, wordWrapWidth: background.width - 40} as TextStyle});
         this.setText(text);
         this.text.x = 20;
         this.text.y = 20;

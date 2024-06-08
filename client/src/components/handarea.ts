@@ -12,10 +12,12 @@ export class HandArea extends Container {
     areaWidth: number;
     areaHeight: number;
     game: Game;
+    canPlaceTile: boolean;
     constructor (game: Game, tileSize: number) {
         super();
         this.game = game;
         this.tileSize = tileSize;
+        this.canPlaceTile = false;
 
         this.areaWidth = (tileSize + 5) * 5 + 10;
         this.areaHeight = tileSize + 20;
@@ -48,11 +50,12 @@ export class HandArea extends Container {
         this.tilesContainer.addChild(tile);
 
         tile.on("pointerdown", e => {
-            if (this.game.getCurrentPlayerTurn().id !== this.game.player.id) {
+            if (!this.canPlaceTile) {
                 console.log("Not your turn")
                 return;
             }
             const board = (this.parent as Game).board;
+            if (!board) return;
             const pos = e.getLocalPosition(this);
             tile.x = pos.x - this.tileSize / 2;
             tile.y = pos.y - this.tileSize / 2;
@@ -60,6 +63,7 @@ export class HandArea extends Container {
             board.addChild(shadow);
             shadow.renderable = false;
             e.target.on("globalpointermove", e => {
+                if (!board) return;
                 const pos = e.getLocalPosition(this);
                 tile.x = pos.x - this.tileSize / 2;
                 tile.y = pos.y - this.tileSize / 2;
@@ -74,6 +78,7 @@ export class HandArea extends Container {
             });
 
             e.target.on("pointerup", e => {
+                if (!board) return;
                 const pos = e.getLocalPosition(board);
                 e.target.off("globalpointermove");
                 e.target.off("pointerup");
@@ -82,6 +87,7 @@ export class HandArea extends Container {
                 const index = this.tilesContainer.getChildIndex(e.target);
                 this.game.placeTile(index, gridX, gridY, response => {
                     if (!!response && !!response.type) {
+                        this.canPlaceTile = false;
                         board.addTile(tile, response.x, response.y, response.score);
                         e.target.off("pointerdown");
                         tile.onPlaced();

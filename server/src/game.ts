@@ -24,7 +24,7 @@ export class Game {
         this.bonusTiles = [];
         this.tiles = Array.apply(null, Array(config.boardWidth)).map(() => Array(config.boardHeight));
         this.players = [];
-        this.state = {stage: "readycheck", round: 1, turn: 0}
+        this.state = {stage: "readycheck", round: 1, turn: 0, finalRound: false}
         this._io = io;
     }
 
@@ -48,13 +48,34 @@ export class Game {
         this.players.forEach(player => this.addTilesToPlayer(player.id, 5));
     }
 
+    end = () => {
+        const resetPlayerData = (player: PlayerData) => {
+            player.gameId = null;
+            player.ready = false;
+            player.score = 0;
+            player.tiles = [];
+        }
+        this.state.stage = "ended";
+        const winningScore = this.players.sort((a, b) => a.score - b.score)[0].score;
+        const winners = this.players.filter(p => p.score === winningScore).map(p => {
+            return {
+                name: p.name,
+                score: p.score
+            }
+        });
+        this.state.winners = winners;
+        this.players.forEach(resetPlayerData);
+    }
+
     addUser = (player: PlayerData) => {
         this.players.push(player);
         player.gameId = this.id;
     }
 
     removeUser = (player: PlayerData) => {
-        this.players.splice(this.players.findIndex(x => x.id === player.id), 1);
+        if (this.state.stage !== "ended") {
+            this.players.splice(this.players.findIndex(x => x.id === player.id), 1);
+        }
         player.gameId = null;
     }
 
@@ -90,8 +111,14 @@ export class Game {
         let isNewRound = false;
         this.state.turn++;
         if (this.state.turn >= this.players.length) {
+            if (this.state.finalRound) {
+                this.end();
+                return true;
+            }
             this.state.turn = 0;
             this.state.round++;
+            this.state.finalRound = this.state.round === this.config.rounds;
+            
             isNewRound = true;
         }
         console.log(`Next turn! Round ${this.state.round} Turn ${this.state.turn}`)
@@ -126,6 +153,23 @@ export class Game {
             tiles: this.tiles,
             players: this.players,
             state: this.state
+        }
+    }
+
+    updateConfig = (config: Partial<GameConfig>): GameConfig | undefined => {
+        let updated = false;
+        if ((config.boardHeight !== undefined && config.boardHeight !== this.config.boardHeight) || (config.boardWidth !== undefined && config.boardWidth !== this.config.boardWidth)) {
+            this.config.boardHeight = config.boardHeight || this.config.boardHeight;
+            this.config.boardWidth = config.boardWidth || this.config.boardWidth;
+            this.tiles = Array.apply(null, Array(this.config.boardWidth)).map(() => Array(this.config.boardHeight));
+            updated = true;
+        }
+        if (config.rounds !== undefined && config.rounds !== this.config.rounds) {
+            this.config.rounds = config.rounds;
+            updated = true;
+        }
+        if (updated) {
+            return this.config;
         }
     }
 }
