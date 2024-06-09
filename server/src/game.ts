@@ -49,6 +49,9 @@ export class Game {
     }
 
     end = () => {
+        if (this.players.length === 0) {
+            return;
+        }
         const resetPlayerData = (player: PlayerData) => {
             player.gameId = null;
             player.ready = false;
