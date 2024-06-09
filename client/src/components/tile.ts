@@ -1,4 +1,4 @@
-import { Container, Graphics} from "pixi.js";
+import { Container, Graphics, Point, Ticker} from "pixi.js";
 import { TileType } from "../../../common/tileType";
 import colors from "../../../common/colors.json";
 import { Tooltip } from "./tooltip";
@@ -22,6 +22,8 @@ export class Tile extends Container{
 
         const onHover = (tile: Tile) => (this.game.tooltip as Tooltip).setText(tile.getTooltipText());
         const onHoverEnd = () => (this.game.tooltip as Tooltip).setText();
+
+        this.pivot = 0.5;
 
         const background = new Graphics().rect(0, 0, tileSize, tileSize).fill(data.color).stroke({color: "black", width: 3, alpha: 0.3, alignment: 1});
         this.addChild(background);
@@ -51,7 +53,7 @@ export class Tile extends Container{
             }
         })
     }
-
+    
     _createTriangle = (x: number, y: number, angle: number, color: string) => {
         const h = 10;
         const w = 16;
@@ -62,7 +64,11 @@ export class Tile extends Container{
     }
 
     getTooltipText = () => {
-        let text = `${this.getTypeData().name}\n\nBrickan ger poäng för:`
+        const name = this.getTypeData().name;
+        if (!this.scoring || this.scoring.length === 0) {
+            return `${name}\n\nLägg en bricka som vill ligga bredvid en ${name.toLocaleLowerCase()} bredvid denna bricka för poäng`;
+        }
+        let text = `${name}\n\nBrickan ger poäng för:`
         text += `\n\n- ${this.getTypeData(this.scoring[0].type).name} ${this._getDirectionName(0)}`;
         text += `\n\- ${this.getTypeData(this.scoring[1].type).name} ${this._getDirectionName(1)}`;
         text += `\n\- ${this.getTypeData(this.scoring[2].type).name} ${this._getDirectionName(2)}`;

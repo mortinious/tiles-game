@@ -1,4 +1,4 @@
-import { Application, BitmapText, Container, Graphics, Text } from "pixi.js";
+import { Application, BitmapText, Container, Graphics, Point, Text } from "pixi.js";
 import { Board } from "./board";
 import { HandArea } from "./handarea";
 import { Tooltip } from "./tooltip";

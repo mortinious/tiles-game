@@ -32,9 +32,6 @@ export class Lobby extends Container {
         const createGame = () => {
             socket.emit(events.lobby.NewGame);
         }
-        const logo = this.createLogo();
-        logo.position = {x: app.screen.width / 2 - logo.width / 2, y : 80}
-        this.addChild(logo);
 
         const createButton = new Container();
         const buttonBack = new Graphics().roundRect(0, 0, 100, 40, 5).fill(colors.tilegreen).stroke({color: "black", width: 4, alignment: 1, alpha: 0.3});
@@ -207,33 +204,6 @@ export class Lobby extends Container {
         }
 
         return gameContainer;
-    }
-
-    createLogo = () => {
-        const ascii = 
-`
-#####  #  #     ####  #####
-  #    #  #     #     #
-  #    #  #     ###   #####
-  #    #  #     #         #
-  #    #  ####  ####  #####
-`
-        const size = 25;
-        const colorArray = [colors.tileblue, colors.tilegreen, colors.tilewhite, colors.tileyellow];
-        const logoContainer = new Container();
-        const rows = ascii.split("\n");
-        let width = 0
-        for (let row = 0; row < rows.length; row++) {
-            const textrow = rows[row];
-            width = Math.max(width, textrow.length);
-            if (textrow.trim() === "") continue;
-            for (let col = 0; col < textrow.length; col++) {
-                if (textrow[col] === " ") continue;
-                logoContainer.addChild(new Graphics().rect(col * size, row * size, size, size).fill(colorArray[Math.floor(Math.random() * 4)]).stroke({color: "black", width: 3, alpha: 0.3, alignment: 1}))
-            }
-        }
-        logoContainer.width = width * size;
-        return logoContainer;
     }
 
 }

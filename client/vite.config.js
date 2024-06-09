@@ -1,9 +1,10 @@
 
 export default {
     root: "./src",
+    assetsInclude: ["**/*.txt"],
     build: {
         outDir: "../../dist/client",
-        sourcemap: true
+        sourcemap: true,
     },
     server: {
         watch: {
