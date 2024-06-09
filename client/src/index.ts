@@ -181,14 +181,17 @@ app.init({resizeTo: window}).then(() => {
         }
     })
 
-    const changelogLink = new Text({text: "Changlog (GitHub)", style: SmallTextStyle});
+    const changelogLink = new Text({text: "Changelog (länk)", style: SmallTextStyle});
     changelogLink.position = {x: app.screen.width - 10, y: app.screen.height - 10};
     changelogLink.anchor = 1;
     changelogLink.cursor = "pointer";
     changelogLink.hitArea = new Rectangle(-100, -20, 100, 20);
+    changelogLink.eventMode = "static";
     changelogLink.on("pointerdown", () => {
         window.open("https://mortinious.github.io/tiles-game/CHANGELOG.html")
     })
+    changelogLink.zIndex = 20;
+    background.addChild(changelogLink);
 
     const resetScreen = () => {
         app.stage.children.forEach(child => child.label !== "background" && child.destroy());
