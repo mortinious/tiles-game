@@ -53,7 +53,7 @@ export class Tile extends Container{
             }
         })
     }
-    
+
     _createTriangle = (x: number, y: number, angle: number, color: string) => {
         const h = 10;
         const w = 16;
@@ -113,6 +113,6 @@ export class Tile extends Container{
         if (this._arrows) {
             this._arrows.forEach(a => a.destroy());
         }
-        this.scoring = {} as any;
+        this.scoring = null;
     }
 }

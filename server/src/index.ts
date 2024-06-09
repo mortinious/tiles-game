@@ -88,7 +88,7 @@ io.on("connection", (socket: Socket) => {
         }
         const game = games.find(x => x.id === player.gameId);
         if (!game) {
-            callback({success: false});
+            callback({success: true, games: games.map(x => x.getGameData())})
             return;
         }
         game.removeUser(player);
@@ -135,6 +135,7 @@ io.on("connection", (socket: Socket) => {
                         io.to("lobby").emit(Events.lobby.GameUpdated, {game: game.getGameData()});
                         const index = games.findIndex(x => x.id === player.gameId);
                         games.splice(index, 1);
+                        return;
                     } else {
                         io.to(game.id).fetchSockets().then(sockets => {
                             for (const s of sockets) {

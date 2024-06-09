@@ -77,6 +77,9 @@ export class Game {
             this.players.splice(this.players.findIndex(x => x.id === player.id), 1);
         }
         player.gameId = null;
+        if (this.players.length === 0) {
+            this.end();
+        }
     }
 
     placeTile = (player: PlayerData, index: number, x: number, y: number) => {
