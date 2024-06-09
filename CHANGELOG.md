@@ -1,6 +1,7 @@
 # Changelog
 ## 2024-06-09 - Adminläge och snyggare bakgrund
-Första installationen och releasen av spelet.\
+Adminläge som kan användas om servern fuckar ur.
+Och en snyggare logga och bakgrund.
 ### Nya funktioner:
 - Adminläge som man når med Ctrl + §
 - Snyggare bakgrund och logga :)
@@ -12,7 +13,7 @@ Första installationen och releasen av spelet.\
 ---
 
 ## 2024-06-08 - Första releasen
-Första installationen och releasen av spelet.\
+Första installationen och releasen av spelet.
 ### Nya funktioner:
 - Lobby för att skapa spel
 - Grundläggande funktionalitet i spelet
