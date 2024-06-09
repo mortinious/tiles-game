@@ -6,7 +6,7 @@ import { Lobby } from "./components/lobby";
 import { Game } from "./components/game";
 import { GameData } from "../../common/gameData";
 import colors from "../../common/colors.json";
-import { MediumTextStyle } from "./util/textstyles";
+import { SmallTextStyle } from "./util/textstyles";
 import { Socket } from "socket.io-client";
 
 const colorArray = [colors.tileblue, colors.tilegreen, colors.tilewhite, colors.tileyellow];
@@ -130,13 +130,11 @@ app.init({resizeTo: window}).then(() => {
     logo.zIndex = 10;
     logo.position = {x: app.screen.width / 2 - logo.width / 2, y : 80}
     background.addChild(logo);
-    
+
     let ticksUntilNextColorchange = 5;
     let ticksUntilNextCFallingTile = 0;
     const fallingTiles: Graphics[] = [];
     const size = 50;
-
-
     app.ticker.add(() => {
         ticksUntilNextColorchange--;
         ticksUntilNextCFallingTile--;
@@ -181,6 +179,15 @@ app.init({resizeTo: window}).then(() => {
         for (const index of tilesToDelete) {
             fallingTiles.splice(index, 1)[0].destroy();
         }
+    })
+
+    const changelogLink = new Text({text: "Changlog (GitHub)", style: SmallTextStyle});
+    changelogLink.position = {x: app.screen.width - 10, y: app.screen.height - 10};
+    changelogLink.anchor = 1;
+    changelogLink.cursor = "pointer";
+    changelogLink.hitArea = new Rectangle(-100, -20, 100, 20);
+    changelogLink.on("pointerdown", () => {
+        window.open("https://mortinious.github.io/tiles-game/CHANGELOG.md")
     })
 
     const resetScreen = () => {
