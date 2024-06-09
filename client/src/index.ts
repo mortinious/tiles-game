@@ -1,4 +1,4 @@
-import { Application, Container, FillStyle, FillStyleInputs, Graphics} from "pixi.js";
+import { Application, Container, Text, Graphics, Rectangle} from "pixi.js";
 import { io } from "socket.io-client";
 import events from "../../common/events.json";
 import { Login } from "./components/login";
@@ -6,6 +6,8 @@ import { Lobby } from "./components/lobby";
 import { Game } from "./components/game";
 import { GameData } from "../../common/gameData";
 import colors from "../../common/colors.json";
+import { MediumTextStyle } from "./util/textstyles";
+import { Socket } from "socket.io-client";
 
 const colorArray = [colors.tileblue, colors.tilegreen, colors.tilewhite, colors.tileyellow];
 
@@ -36,6 +38,80 @@ const createLogo = () => {
     return logoContainer;
 }
 
+const toggleAdmin = (socket: Socket) => {
+    const admin = app.stage.getChildByLabel("admin");
+    if (!!admin) {
+        admin.destroy();
+        return;
+    }
+    const adminContainer = new Container();
+    adminContainer.zIndex = 1000;
+    adminContainer.label = "admin";
+    adminContainer.position = {x: app.screen.width / 2 - 200, y: 150};
+    adminContainer.interactive = true;
+    app.stage.addChild(adminContainer);
+
+    adminContainer.addChild(new Graphics().rect(0, 0, 400, 250).fill({color:"black"}));
+
+    const adminTitle = new Text({text: "Admin", style: {fontSize: 40, fill: "white"}});
+    adminTitle.position = {x: 200, y: 30};
+    adminTitle.anchor = 0.5;
+    adminContainer.addChild(adminTitle);
+
+    const resetAllButton = new Text({text: "Återställ server", style: {fontSize: 30, fill: "white"}});
+    resetAllButton.position = {x: 200, y: 80};
+    resetAllButton.anchor = 0.5;
+    resetAllButton.eventMode = "static";
+    resetAllButton.cursor = "pointer";
+    resetAllButton.hitArea = new Rectangle(0, 0, 400, 30);
+    resetAllButton.on("pointerdown", () => {
+        socket.emit(events.admin.ResetAll);
+        adminContainer.destroy();
+    })
+    resetAllButton.on("pointerenter", () => {
+        resetAllButton.style.fill = colors.tileyellow;
+    });
+    resetAllButton.on("pointerleave", () => {
+        resetAllButton.style.fill = "white";
+    });
+    adminContainer.addChild(resetAllButton)
+
+    const resetGamesButton = new Text({text: "Återställ spel", style: {fontSize: 30, fill: "white"}});
+    resetGamesButton.position = {x: 200, y: 120};
+    resetGamesButton.anchor = 0.5;
+    resetGamesButton.eventMode = "static";
+    resetGamesButton.cursor = "pointer";
+    resetGamesButton.hitArea = new Rectangle(0, 0, 400, 30);
+    resetGamesButton.on("pointerdown", () => {
+        socket.emit(events.admin.ResetGames);
+        adminContainer.destroy();
+    })
+    resetGamesButton.on("pointerenter", () => {
+        resetGamesButton.style.fill = colors.tileyellow;
+    });
+    resetGamesButton.on("pointerleave", () => {
+        resetGamesButton.style.fill = "white";
+    });
+    adminContainer.addChild(resetGamesButton)
+
+    const closeButton = new Text({text: "Stäng", style: {fontSize: 30, fill: "white"}});
+    closeButton.position = {x: 200, y: 250 - 30};
+    closeButton.anchor = 0.5;
+    closeButton.eventMode = "static";
+    closeButton.hitArea = new Rectangle(0, 0, 400, 30);
+    closeButton.cursor = "pointer";
+    closeButton.on("pointerdown", () => {
+        adminContainer.destroy();
+    })
+    closeButton.on("pointerenter", () => {
+        closeButton.style.fill = colors.tileyellow;
+    });
+    closeButton.on("pointerleave", () => {
+        closeButton.style.fill = "white";
+    });
+    adminContainer.addChild(closeButton)
+}
+
 const app = new Application();
 app.init({resizeTo: window}).then(() => {
     document.body.appendChild(app.canvas);
@@ -59,6 +135,7 @@ app.init({resizeTo: window}).then(() => {
     let ticksUntilNextCFallingTile = 0;
     const fallingTiles: Graphics[] = [];
     const size = 50;
+
 
     app.ticker.add(() => {
         ticksUntilNextColorchange--;
@@ -97,7 +174,7 @@ app.init({resizeTo: window}).then(() => {
             if (!isInGame && tile.alpha < 1) {
                 tile.alpha += 0.02;
             }
-            if (tile.y > background.height + tile.width) {
+            if (tile.y > app.screen.height + tile.width) {
                 tilesToDelete.push(index);
             }
         }
@@ -117,6 +194,12 @@ app.init({resizeTo: window}).then(() => {
                     token: localStorage.getItem("token")
                 });
             }
+    });
+
+    window.addEventListener("keydown", (event: KeyboardEvent) => {
+        if (event.ctrlKey && event.code === "Backquote") {
+            toggleAdmin(socket);
+        }
     });
 
 
@@ -155,6 +238,14 @@ app.init({resizeTo: window}).then(() => {
         } else {
             joinLobby(data.games)
         }
+    });
+
+    socket.on(events.admin.ResetGames, () => {
+        window.location.reload();
+    });
+
+    socket.on(events.admin.ResetAll, () => {
+        window.location.reload();
     });
 
     window.addEventListener("keydown", (e) => app.stage.emit("keydown", {key: e.key}));

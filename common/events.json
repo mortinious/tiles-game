@@ -26,5 +26,9 @@
         "GainPoints": "game.gainpoints",
         "NextTurn": "game.nextturn",
         "DrawTile": "game.drawtile"
+    },
+    "admin": {
+        "ResetAll": "admin.resetall",
+        "ResetGames": "admin.resetgames"
     }
 }

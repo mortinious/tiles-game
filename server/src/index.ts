@@ -11,9 +11,9 @@ const app = express();
 const httpServer = http.createServer(app);
 const io = new Server(httpServer);
 
-const tokens: Record<string, string> = {};
-const players = {} as {[key: string]: PlayerData};
-const games: Game[] = [];
+let tokens: Record<string, string> = {};
+let players = {} as {[key: string]: PlayerData};
+let games: Game[] = [];
 let nextId = 0;
 
 io.on("connection", (socket: Socket) => {
@@ -158,6 +158,25 @@ io.on("connection", (socket: Socket) => {
             io.to(game.id).emit(Events.game.UpdateConfig, {config: game.config});
         }
     })
+
+    socket.on(Events.admin.ResetGames, () => {
+        games = [];
+        for (const player of Object.values(players)) {
+            player.gameId = null;
+            player.ready = false;
+            player.score = 0;
+            player.tiles = [];
+        }
+        io.emit(Events.admin.ResetGames);
+    })
+
+    socket.on(Events.admin.ResetAll, () => {
+        games = [];
+        players = {};
+        tokens = {};
+        io.emit(Events.admin.ResetAll);
+    })
+
 })
 
 app.use(express.static(path.join(__dirname, "../../dist/client")))
