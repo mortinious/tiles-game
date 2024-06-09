@@ -187,7 +187,7 @@ app.init({resizeTo: window}).then(() => {
     changelogLink.cursor = "pointer";
     changelogLink.hitArea = new Rectangle(-100, -20, 100, 20);
     changelogLink.on("pointerdown", () => {
-        window.open("https://mortinious.github.io/tiles-game/CHANGELOG.md")
+        window.open("https://mortinious.github.io/tiles-game/CHANGELOG.html")
     })
 
     const resetScreen = () => {
