@@ -9,7 +9,9 @@ Och en snyggare logga och bakgrund.
 - Efter spel är klart kan man inte trycka "Lämna spel". Man får ladda om sidan.
 - Tooltip för brickor kastar fel efter att de är placerade
 ### Kända buggar:
-
+- Man får inga nya brickor mellan rundor om man inte reloadar sidan efter spelets start
+- Vinnaren blir spelaren med minst antal poäng
+- Inputfält fungerar dåligt för namnfältet
 ---
 
 ## 2024-06-08 - Första releasen
