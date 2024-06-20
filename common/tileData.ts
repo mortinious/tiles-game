@@ -1,11 +1,9 @@
-import { TileType } from "./tileType"
+import { TileName, TileType } from "./tileType"
 
 export type TileData = {
-    type: TileType,
-    scoring?: TileScoring[]
-}
-
-export type TileScoring = {
-    type: TileType,
-    negated: boolean
+    type: TileType;
+    name: TileName;
+    cost: string[];
+    data: Record<string, any>;
+    playerId?: string;
 }

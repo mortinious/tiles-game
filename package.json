@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "build:types": "tsc -p ./common/tsconfig.json",
+    "build:common": "tsc -p ./common/tsconfig.json",
+    "watch:common": "tsc -w -p ./common/tsconfig.json",
     "watch:client": "npm run watch --prefix client",
     "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
     "dev": "concurrently \"npm run watch --prefix client\" \"npm run dev --prefix server\"",
     "build": "npm run build:types && npm run build --prefix client && npm run build --prefix server",
     "start": "node dist/server/index.js",

@@ -1,9 +1,9 @@
 import { Container, Text } from "pixi.js";
 import { Player } from "./player";
 import colors from "../../../common/colors.json";
-import { PlayerData } from "common/playerData";
 import { LargeTextStyle } from "../util/textstyles";
-import { GameData } from "common/gameData";
+import { PlayerData } from "../../../common/playerData";
+import { GameData } from "../../../common/gameData";
 
 export class PlayerArea extends Container{
     playerContainer: Container<Player>;
@@ -18,11 +18,11 @@ export class PlayerArea extends Container{
         this.addChild(this.playerContainer);
 
         this.playerContainer.on("childAdded", e => {
-            this._refreshPlayers();
+            this._refreshPlayersPostion();
         });
 
         this.playerContainer.on("childRemoved", e => {
-            this._refreshPlayers();
+            this._refreshPlayersPostion();
         });
     }
 
@@ -47,10 +47,16 @@ export class PlayerArea extends Container{
         existing.updatePlayer({id, score: existing.data.score + scoreToAdd});
     }
 
-    rerender = () => {
-        this.playerContainer.children.forEach((child, index) => {
-            child.updatePlayer(child.data);
+    updatePlayers = (gameData?: GameData) => {
+        if (gameData) {
+            this.playerContainer.children.sort((a, b) => gameData.players.findIndex(x => x.id === a.data.id) - gameData.players.findIndex(x => x.id === b.data.id));
+        }
+        this.playerContainer.children.forEach(child => {
+            const data = gameData?.players.find(x => x.id === child.data.id);
+            if (!data) return;
+            child.updatePlayer(data);
         })
+        this._refreshPlayersPostion();
     }
 
     removePlayer = (player: PlayerData) => {
@@ -60,10 +66,10 @@ export class PlayerArea extends Container{
         }
     }
 
-    _refreshPlayers = () => {
+    _refreshPlayersPostion = () => {
         this.playerContainer.children.forEach((child, index) => {
             child.x = 0;
-            child.y = index * 50;
+            child.y = index * 90;
         })
     }
 }

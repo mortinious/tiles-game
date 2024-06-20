@@ -1,4 +1,4 @@
-import { Application, BitmapText, Container, Graphics, Point, Text } from "pixi.js";
+import { BitmapText, Container, FederatedWheelEvent, Graphics, Rectangle, Text } from "pixi.js";
 import { Board } from "./board";
 import { HandArea } from "./handarea";
 import { Tooltip } from "./tooltip";
@@ -9,17 +9,17 @@ import { Socket } from "socket.io-client";
 import events from "../../../common/events.json"
 import colors from "../../../common/colors.json"
 import { GameState } from "../../../common/gameState";
-import { LargeTextStyle, SmallTextStyle } from "../util/textstyles";
+import { SmallTextStyle } from "../util/textstyles";
 import { PlayerData } from "../../../common/playerData";
-import { Tile } from "./tile";
 import { Notice } from "./notice";
-import { getPossessiveName } from "../util/utils";
+import { createTile, getPossessiveName } from "../util/utils";
 import { GameConfig } from "../../../common/gameConfig";
 import { ReadyCheckPopup } from "./readyCheckPopup";
 import { ConfigArea } from "./configArea";
+import { TileData } from "../../../common/tileData";
 
 export class Game extends Container {
-    tileSize = 50;
+    tileSize = 80;
     data: GameData;
     board: Board | null;
     handArea: HandArea | null;
@@ -35,7 +35,6 @@ export class Game extends Container {
         super();
         this.socket = socket;
         this.data = data;
-        this.tileSize = 50;
         this.board = null;
         this.handArea = null;
         this.tooltip = null;
@@ -69,18 +68,30 @@ export class Game extends Container {
         this.playerArea.updatePlayer(player);
     }
 
-    placeTile = (index: number, x: number, y: number, callback: (data: any) => void) => {
-        if (x < 0 || x >= this.data.config.boardWidth || y < 0 || y >= this.data.config.boardHeight) {
-            callback(null);
+    getPlayerColors = (playerId: string) => {
+        const player = this.data.players.find(x => x.id === playerId);
+        if (!player || !Object.keys(colors.playercolors).includes(player.color)) return null;
+        return colors.playercolors[player.color as keyof typeof colors.playercolors];
+    }
+
+    placeTile = (index: number, x: number, y: number, callback: (success: boolean, data?: any) => void) => {
+        if (!this.board ||x < 0 || x >= this.data.config.boardWidth || y < 0 || y >= this.data.config.boardHeight || !this.board.isCoordValid(x, y)) {
+            callback(false);
             return;
         }
         this.socket.emit(events.game.PlaceTile, {index, x, y}, (response: any) => {
-            if (!!response.type) {
+            const success = response && !!response.tile;
+            if (success) {
                 this.data.tiles[response.x][response.y] = response.type;
                 this.player.score += response.score;
+                for (const res of response.resourcesPayed) {
+                    if (!this.board) return;
+                    this.board.useResource(res.resources, res.x, res.y, res.score);
+                    this.playerArea.updatePlayerScore(res.playerId, res.score);
+                }
                 this.playerArea.updatePlayer({id: this.player.id, score: this.player.score});
             }
-            callback(response);
+            callback(success, response);
         });
     }
 
@@ -93,12 +104,32 @@ export class Game extends Container {
             this.setupContainer.destroy();
         }
 
+        const boardContainer = new Container();
         this.board = new Board(this.data.config.boardWidth, this.data.config.boardHeight, this.tileSize, this.data.tiles, this);
-        this.board.position = {x: app.screen.width / 2 - this.board.width / 2, y: 120}
-        this.addChild(this.board);
+        this.board.position = {x: this.board.width / 2, y: 0};
+        boardContainer.addChild(this.board);
+        boardContainer.position = {x: app.screen.width / 2, y: 120};
+        boardContainer.pivot = {x: this.board.width / 2, y: 0}
+        boardContainer.setSize(this.board.width);
+        boardContainer.eventMode = "static";
+        boardContainer.hitArea = new Rectangle(0, 0, boardContainer.width, boardContainer.height);
+        boardContainer.on("wheel", (e: FederatedWheelEvent) => {
+            if (!this.board) return;
+            e.preventDefault();
+            const delta = e.deltaY / 1000;
+            if (this.board.scale.x + delta < 0.5) {
+                this.board.scale = 0.5;
+            } else if (this.board.scale.x + delta > 1) {
+                this.board.scale = 1;
+            } else {
+                this.board.scale.x += delta;
+                this.board.scale.y += delta;
+            }
+        })
+        this.addChild(boardContainer);
 
         this.handArea = new HandArea(this, this.tileSize);
-        this.handArea.position = {x: this.board.x + this.board.width / 2 - this.handArea.areaWidth / 2, y: this.board.y + this.board.height + this.tileSize / 2}
+        this.handArea.position = {x: app.screen.width / 2, y: app.screen.height}
         const isItYourTurn = this.data.players[this.data.state.turn].id === this.player.id;
         if (isItYourTurn) {
             this.handArea.canPlaceTile = true;
@@ -111,6 +142,15 @@ export class Game extends Container {
         this.tooltip.x = app.screen.width - 270;
         this.tooltip.y = 120;
         this.addChild(this.tooltip);
+
+        this.eventMode = "static";
+        this.on("globalpointermove", event => {
+            if (!this.handArea?.expanded && event.y > app.screen.height - (this.tileSize * 0.5)) {
+                this.handArea?.expand();
+            } else if (!!this.handArea?.expanded && event.y < app.screen.height - (this.tileSize * 1.5)) {
+                this.handArea?.collapse();
+            }
+        })
     }
 
     init = () => {
@@ -202,7 +242,7 @@ export class Game extends Container {
             readyCheckPopup.destroy();
             this.startGame();
             if (!this.handArea || !this.board) return;
-            this.playerArea.rerender();
+            this.playerArea.updatePlayers(data.game);
             const player = this.data.players.find((x: PlayerData) => x.id === this.player.id) as PlayerData
             Object.assign(this.player, player);
             player.tiles?.forEach(this.handArea.addTile);
@@ -212,7 +252,6 @@ export class Game extends Container {
             }
             this.addChild(new Notice(`Spelet har startat!\nRunda ${this.data.state.round}: ${getPossessiveName(this.data.players[0].name, isItYourTurn)} tur.`, 2000))
             this.setTitleText(`Runda ${this.data.state.round}: ${getPossessiveName(this.data.players[0].name, isItYourTurn)} tur.`)
-            this.board.addBonusTiles(data.game.bonusTiles);
         })
 
         this.socket.on(events.game.PlayerLeave, data => {
@@ -222,9 +261,18 @@ export class Game extends Container {
             readyCheckPopup.updateReadyCheckButton(waiting);
         })
 
-        this.socket.on(events.game.PlaceTile, data => {
+        this.socket.on(events.game.PlaceTile, (data: any) => {
             if (!this.board) return;
-            this.board.addTile(new Tile({type: data.type}, this.tileSize, this), data.x, data.y, data.score);
+            const player = this.data.players.find(x => x.id === data.tile.playerId);
+            if (!player) return;
+            const tileData = data.tile;
+            const tile = createTile(tileData, this.tileSize, this, player.id);
+            if (!tile) return;
+            this.board.addTile(tile, data.x, data.y, data.score);
+            for (const res of data.resourcesPayed) {
+                this.board.useResource(res.resources, res.x, res.y, res.score);
+                this.playerArea.updatePlayerScore(res.playerId, res.score);
+            }
             this.playerArea.updatePlayerScore(data.playerId, data.score);
         });
 

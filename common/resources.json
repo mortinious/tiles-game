@@ -1,0 +1,11 @@
+{
+    "mithril": {
+        "cost": 1
+    },
+    "crystal": {
+        "cost": 2
+    },
+    "rune": {
+        "cost": 3
+    }
+}

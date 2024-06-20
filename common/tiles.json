@@ -1,0 +1,68 @@
+{
+    "mithril_resource": {
+        "tile": {
+            "name": "mithril_resource",
+            "type": "resource",
+            "cost": [],
+            "data": {
+                "resources": ["mithril", "mithril", "mithril"]
+            }
+        },
+        "count": 10
+    },
+    "crystal_resource": {
+        "tile": {
+            "name": "crystal_resource",
+            "type": "resource",
+            "cost": [],
+            "data": {
+                "resources": ["crystal", "crystal"]
+            }
+        },
+        "count": 10
+    },
+    "rune_resource": {
+        "tile": {
+            "name": "rune_resource",
+            "type": "resource",
+            "cost": [],
+            "data": {
+                "resources": ["rune"]
+            }
+        },
+        "count": 10
+    },
+    "mithril_statue": {
+        "tile": {
+            "name": "mithril_statue",
+            "type": "culture",
+            "cost": ["mithril", "mithril"],
+            "data": {
+                "score": 4
+            }
+        },
+        "count": 8
+    },
+    "crystal_arch": {
+        "tile": {
+            "name": "crystal_arch",
+            "type": "culture",
+            "cost": ["crystal", "crystal"],
+            "data": {
+                "score": 7
+            }
+        },
+        "count": 6
+    },
+    "runic_orb": {
+        "tile": {
+            "name": "runic_orb",
+            "type": "culture",
+            "cost": ["rune", "rune"],
+            "data": {
+                "score": 10
+            }
+        },
+        "count": 4
+    }
+}

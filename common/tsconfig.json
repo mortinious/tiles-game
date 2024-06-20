@@ -5,6 +5,7 @@
         "moduleResolution": "NodeNext",
         "resolveJsonModule": true,
         "esModuleInterop": true,
-        "composite": true
-    }
+        "composite": true,
+    },
+    "include": ["**/*.ts", "**.*json"]
 }

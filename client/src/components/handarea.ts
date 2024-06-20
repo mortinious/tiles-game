@@ -1,9 +1,11 @@
-import { Container, Text, Graphics } from "pixi.js";
-import { Tile } from "./tile";
+import { Container, Text, Graphics, Rectangle, Ticker } from "pixi.js";
+import { BaseTile } from "./tiles/baseTile";
 import colors from "../../../common/colors.json";
 import { Game } from "./game";
 import { TileData } from "../../../common/tileData";
 import { Tooltip } from "./tooltip";
+import { createTile } from "../util/utils";
+import { app } from "..";
 
 export class HandArea extends Container {
     tileSize: number;
@@ -12,14 +14,18 @@ export class HandArea extends Container {
     areaHeight: number;
     game: Game;
     canPlaceTile: boolean;
+    expanded: boolean;
     constructor (game: Game, tileSize: number) {
         super();
         this.game = game;
         this.tileSize = tileSize;
         this.canPlaceTile = false;
+        this.expanded = false;
 
-        this.areaWidth = (tileSize + 5) * 5 + 10;
+        this.areaWidth = (tileSize + 5) * 3 + 10;
         this.areaHeight = tileSize + 20;
+
+        this.pivot = {x: this.areaWidth / 2, y: this.areaHeight / 2};
 
         const background = new Graphics().roundRect(0, 0, this.areaWidth, this.areaHeight, 10).fill(colors.areabackground);
         this.addChild(background);
@@ -37,6 +43,36 @@ export class HandArea extends Container {
         this.tilesContainer.on("childAdded", child => {
             this._refreshHand();
         });
+
+        Ticker.shared.add(() => {
+            if (this.expanded && this.y !== app.screen.height - this.tileSize) {
+                const destY = app.screen.height - this.tileSize;
+                if (this.y - destY > 10) {
+                    this.y -= 10
+                } else {
+                    this.y = destY;
+                }
+            } else if (!this.expanded && this.y !== app.screen.height) {
+                const destY = app.screen.height;
+                if (destY - this.y > 10) {
+                    this.y += 10
+                } else {
+                    this.y = destY;
+                }
+            }
+        })
+    }
+
+    expand = () => {
+        if (!this.expanded) {
+            this.expanded = true;
+        }
+    }
+    
+    collapse = () => {
+        if (this.expanded) {
+            this.expanded = false;
+        }
     }
 
     addTile = (tileData: TileData) => {
@@ -44,9 +80,10 @@ export class HandArea extends Container {
             return null;
         }
 
-        const tile = new Tile(tileData, this.tileSize, this.game);
-
+        const tile = createTile(tileData, this.tileSize, this.game, this.game.player.id);
+        if (!tile) return null;
         this.tilesContainer.addChild(tile);
+        tile.initHandArea();
 
         tile.on("pointerdown", e => {
             if (!this.canPlaceTile) {
@@ -55,45 +92,57 @@ export class HandArea extends Container {
             }
             const board = (this.parent as Game).board;
             if (!board) return;
+            board.markValidSquares(tile);
+            this.collapse();
             const pos = e.getLocalPosition(this);
-            tile.x = pos.x - this.tileSize / 2;
-            tile.y = pos.y - this.tileSize / 2;
-            const shadow = new Graphics().rect(0, 0, this.tileSize, this.tileSize).fill({color: "white", alpha: 0.5});
+            tile.pivot = {x: tile.width / 2, y: tile.height / 2};
+            tile.scale = board.scale;
+            tile.x = pos.x;
+            tile.y = pos.y;
+            const shadow = new Graphics();
             board.addChild(shadow);
-            shadow.renderable = false;
-            e.target.on("globalpointermove", e => {
+            tile.on("globalpointermove", e => {
                 if (!board) return;
                 const pos = e.getLocalPosition(this);
-                tile.x = pos.x - this.tileSize / 2;
-                tile.y = pos.y - this.tileSize / 2;
+                tile.x = pos.x;
+                tile.y = pos.y;
                 const boardPos = e.getLocalPosition(board);
                 if (board.isPosInside(boardPos)) {
-                    shadow.renderable = true;
-                    shadow.x = Math.floor(boardPos.x / this.tileSize) * this.tileSize;
-                    shadow.y = Math.floor(boardPos.y / this.tileSize) * this.tileSize;
+                    const coordX = Math.floor(boardPos.x / this.tileSize);
+                    const coordY = Math.floor(boardPos.y / this.tileSize);
+                    const isPosValid = board.isCoordValid(coordX, coordY);
+                    if (shadow.x !== (coordX * this.tileSize) || shadow.y !== (coordY * this.tileSize)) {
+                        shadow.clear();
+                        shadow.rect(0, 0, this.tileSize, this.tileSize).fill({color: isPosValid ? "#66ff44" : "#ff6644", alpha: 0.4})
+                        shadow.x = coordX * this.tileSize;
+                        shadow.y = coordY * this.tileSize;
+                    }
                 } else {
-                    shadow.renderable = false;
+                    shadow.clear();
                 }
             });
 
-            e.target.on("pointerup", e => {
+            tile.on("pointerup", e => {
                 if (!board) return;
                 const pos = e.getLocalPosition(board);
-                e.target.off("globalpointermove");
-                e.target.off("pointerup");
+                tile.off("globalpointermove");
+                tile.off("pointerup");
                 const gridX = Math.floor(pos.x / this.tileSize);
                 const gridY = Math.floor(pos.y / this.tileSize);
-                const index = this.tilesContainer.getChildIndex(e.target);
-                this.game.placeTile(index, gridX, gridY, response => {
-                    if (!!response && !!response.type) {
+                const index = this.tilesContainer.getChildIndex(tile);
+                this.game.placeTile(index, gridX, gridY, (success, data) => {
+                    tile.scale = 1;
+                    tile.pivot = 0;
+                    if (success) {
                         this.canPlaceTile = false;
-                        board.addTile(tile, response.x, response.y, response.score);
-                        e.target.off("pointerdown");
+                        board.addTile(tile, data.x, data.y, data.score);
+                        tile.off("pointerdown");
                         tile.onPlaced();
                         (this.game.tooltip as Tooltip).setText();
                     }
                     shadow.destroy();
                     this._refreshHand();
+                    board.unmarkValidSquares();
                 })
             })
         })

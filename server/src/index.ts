@@ -30,6 +30,7 @@ io.on("connection", (socket: Socket) => {
         players[newId] = {id: newId, name: "", disconnected: false, gameId: null, color: "green", score: 0};
         player = players[newId];
         tokens[token] = newId;
+        socket.data.playerId = newId;
         socket.emit(Events.global.RequestUsername, {token: token, player});
     } else {
         console.log(`Player ${player.name} reconnected with id: ${player.id}`);

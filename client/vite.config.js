@@ -1,5 +1,7 @@
 
-export default {
+import { defineConfig } from 'vite'
+
+export default defineConfig({
     root: "./src",
     assetsInclude: ["**/*.txt"],
     build: {
@@ -10,5 +12,11 @@ export default {
         watch: {
           usePolling: true,
         },
+        proxy: {
+            "/socket.io": {
+                target: "ws://localhost:8080",
+                ws: true
+            }
+        }
     }
-}
+})

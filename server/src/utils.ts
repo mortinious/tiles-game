@@ -1,14 +1,9 @@
-import { TileType } from "../../common/tileType";
+import { TileData } from "../../common/tileData";
+import tilesJson from "../../common/tiles.json";
 
-const types = [
-    "green",
-    "yellow",
-    "blue",
-    "white"
-] as TileType[]
-
-export const getRandomTileType = () => {
-    return types[Math.floor(Math.random() * types.length)];
+export const getRandomTile = (): Partial<TileData> => {
+    const tiles = Object.values(tilesJson);
+    return tiles[Math.floor(Math.random() * tiles.length)].tile as Partial<TileData>;
 }
 
 export const shuffleArray = (array: any[]) => {

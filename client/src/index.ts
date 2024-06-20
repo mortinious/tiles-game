@@ -1,4 +1,4 @@
-import { Application, Container, Text, Graphics, Rectangle} from "pixi.js";
+import { Application, Container, Text, Graphics, Rectangle, Assets, BitmapText} from "pixi.js";
 import { io } from "socket.io-client";
 import events from "../../common/events.json";
 import { Login } from "./components/login";
@@ -6,8 +6,10 @@ import { Lobby } from "./components/lobby";
 import { Game } from "./components/game";
 import { GameData } from "../../common/gameData";
 import colors from "../../common/colors.json";
-import { SmallTextStyle } from "./util/textstyles";
+import assetsJson from "./assets/assets.json";
+import { MediumTextStyle, SmallTextStyle } from "./util/textstyles";
 import { Socket } from "socket.io-client";
+import { DynamicText } from "./components/dynamicText";
 
 const colorArray = [colors.tileblue, colors.tilegreen, colors.tilewhite, colors.tileyellow];
 
@@ -63,7 +65,7 @@ const toggleAdmin = (socket: Socket) => {
     resetAllButton.anchor = 0.5;
     resetAllButton.eventMode = "static";
     resetAllButton.cursor = "pointer";
-    resetAllButton.hitArea = new Rectangle(0, 0, 400, 30);
+    resetAllButton.hitArea = new Rectangle(-200, -15, 400, 30);
     resetAllButton.on("pointerdown", () => {
         socket.emit(events.admin.ResetAll);
         adminContainer.destroy();
@@ -81,7 +83,7 @@ const toggleAdmin = (socket: Socket) => {
     resetGamesButton.anchor = 0.5;
     resetGamesButton.eventMode = "static";
     resetGamesButton.cursor = "pointer";
-    resetGamesButton.hitArea = new Rectangle(0, 0, 400, 30);
+    resetGamesButton.hitArea = new Rectangle(-200, -15, 400, 30);
     resetGamesButton.on("pointerdown", () => {
         socket.emit(events.admin.ResetGames);
         adminContainer.destroy();
@@ -98,7 +100,7 @@ const toggleAdmin = (socket: Socket) => {
     closeButton.position = {x: 200, y: 250 - 30};
     closeButton.anchor = 0.5;
     closeButton.eventMode = "static";
-    closeButton.hitArea = new Rectangle(0, 0, 400, 30);
+    closeButton.hitArea = new Rectangle(-200, -15, 400, 30);
     closeButton.cursor = "pointer";
     closeButton.on("pointerdown", () => {
         adminContainer.destroy();
@@ -110,10 +112,11 @@ const toggleAdmin = (socket: Socket) => {
         closeButton.style.fill = "white";
     });
     adminContainer.addChild(closeButton)
+
 }
 
 const app = new Application();
-app.init({resizeTo: window}).then(() => {
+app.init({resizeTo: window}).then(async () => {
     document.body.appendChild(app.canvas);
 
     let playerId = "";
@@ -123,8 +126,20 @@ app.init({resizeTo: window}).then(() => {
     background.label = "background";
     app.stage.addChild(background);
 
+
     const backgroundColor = new Graphics().rect(0, 0, app.screen.width, app.screen.height).fill("#ddfaff");
     background.addChild(backgroundColor);
+
+    const loadingAssetsText = new BitmapText({style: {fontSize: 40, fill: "black"}});
+    loadingAssetsText.position = {x: app.screen.width / 2, y: app.screen.height / 2};
+    loadingAssetsText.anchor = 0.5;
+    background.addChild(loadingAssetsText);
+    Object.values(assetsJson).forEach(async (filename) => {
+        console.log("Laddar resurs " + filename)
+        loadingAssetsText.text = "Laddar resurs " + filename;
+        await Assets.load(`../assets/${filename}`);
+    });
+    loadingAssetsText.destroy();
     
     const logo = createLogo();
     logo.zIndex = 10;

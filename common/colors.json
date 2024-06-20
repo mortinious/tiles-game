@@ -8,6 +8,17 @@
     "boardsquare2": "#cceecc",
     "areaborder": "#444422",
     "areabackground": "#555544",
-    "text": "black"
-
+    "text": "black",
+    "playercolors": {
+        "red": {
+            "main": "#ff9999",
+            "border": "aa4444",
+            "text": "black"
+        },
+        "blue": {
+            "main": "#9999ff",
+            "border": "4444aa",
+            "text": "black"
+        }
+    }
 }
